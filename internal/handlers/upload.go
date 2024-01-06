@@ -12,62 +12,58 @@ import (
 
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		http.Error(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// ファイルの解析と最大サイズの設定
-    // 10MBのファイルサイズ制限を設定
-	r.ParseMultipartForm(10 << 20)
+	// 10MBのファイルサイズ制限を設定
+	const MaxUploadSize = 10 << 20 // 10 MB
+	r.Body = http.MaxBytesReader(w, r.Body, MaxUploadSize)
+	if err := r.ParseMultipartForm(MaxUploadSize); err != nil {
+		http.Error(w, fmt.Sprintf("The uploaded file is too big: %s. Maximum size is %d MB.", err.Error(), MaxUploadSize>>20), http.StatusBadRequest)
+		return
+	}
 
-	// フォームからファイルを取得
 	file, handler, err := r.FormFile("file")
 	if err != nil {
-		fmt.Println("Error Retrieving the File")
-		fmt.Println(err)
+		http.Error(w, fmt.Sprintf("Could not retrieve the file: %s", err.Error()), http.StatusInternalServerError)
 		return
 	}
 	defer file.Close()
 
-	// MIMEタイプの検証（例: "audio/mpeg" など）
+	// MIMEタイプの検証
 	buf := make([]byte, 512)
-	if _, err := file.Read(buf); err!= nil {
-		http.Error(w, "Error reading file", http.StatusInternalServerError)
+	if _, err := file.Read(buf); err != nil {
+		http.Error(w, fmt.Sprintf("Error reading file: %s", err.Error()), http.StatusInternalServerError)
 		return
 	}
 
-	// ファイルタイプの確認
 	filetype := mime.TypeByExtension(filepath.Ext(handler.Filename))
 	if filetype == "" {
 		filetype = http.DetectContentType(buf)
 	}
 	if !strings.HasPrefix(filetype, "audio/") {
-		http.Error(w, "Invalid file type", http.StatusBadRequest)
+		http.Error(w, "The provided file format is not allowed. Please upload an audio file.", http.StatusBadRequest)
 		return
 	}
 
-	// ファイルポインタをリセット
 	file.Seek(0, io.SeekStart)
 
-	// 保存するディレクトリとファイル名を指定
 	dir := "./uploads/"
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		os.Mkdir(dir, os.ModePerm) // ディレクトリがない場合は作成
+		os.Mkdir(dir, os.ModePerm)
 	}
 	filePath := filepath.Join(dir, handler.Filename)
 
-	// ファイルをサーバー上に保存
 	dst, err := os.Create(filePath)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Could not save file: %s", err.Error()), http.StatusInternalServerError)
 		return
 	}
 	defer dst.Close()
 
-	// ファイルをコピー
-	_, err = io.Copy(dst, file)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if _, err = io.Copy(dst, file); err != nil {
+		http.Error(w, fmt.Sprintf("Error saving file: %s", err.Error()), http.StatusInternalServerError)
 		return
 	}
 
