@@ -11,25 +11,25 @@ import (
     "database/sql"
     "github.com/joho/godotenv"
     "log"
-    "os"
     _ "github.com/lib/pq"
+	"time"
 )
 
 var db *sql.DB
 
 func init() {
-    // .envファイルから環境変数を読み込む
-    err := godotenv.Load()
-    if err != nil {
-        log.Fatal("Error loading .env file")
-    }
+	// .envファイルから環境変数を読み込む
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
-    // 環境変数を使用してデータベース接続設定
-    db, err := sql.Open("postgres", fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=require",
-        os.Getenv("DB_HOST"), os.Getenv("DB_USER"), os.Getenv("DB_PASS"), os.Getenv("DB_NAME"), os.Getenv("DB_PORT")))
-    if err != nil {
-        log.Fatal(err)
-    }
+	// 環境変数を使用してデータベース接続設定
+	db, err = sql.Open("postgres", fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=require",
+		os.Getenv("DB_HOST"), os.Getenv("DB_USER"), os.Getenv("DB_PASS"), os.Getenv("DB_NAME"), os.Getenv("DB_PORT")))
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
@@ -89,5 +89,13 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "File uploaded successfully: %s", filePath)
+    // ファイル情報をデータベースに保存
+    _, err = db.Exec("INSERT INTO files (filename, filepath, upload_time) VALUES ($1, $2, $3)",
+        handler.Filename, filePath, time.Now())
+    if err != nil {
+        http.Error(w, fmt.Sprintf("Could not save file information: %s", err.Error()), http.StatusInternalServerError)
+        return
+    }
+
+    fmt.Fprintf(w, "File uploaded and saved in database successfully: %s", filePath)
 }
