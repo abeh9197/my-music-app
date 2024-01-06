@@ -8,7 +8,29 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+    "database/sql"
+    "github.com/joho/godotenv"
+    "log"
+    "os"
+    _ "github.com/lib/pq"
 )
+
+var db *sql.DB
+
+func init() {
+    // .envファイルから環境変数を読み込む
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // 環境変数を使用してデータベース接続設定
+    db, err := sql.Open("postgres", fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=require",
+        os.Getenv("DB_HOST"), os.Getenv("DB_USER"), os.Getenv("DB_PASS"), os.Getenv("DB_NAME"), os.Getenv("DB_PORT")))
+    if err != nil {
+        log.Fatal(err)
+    }
+}
 
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
