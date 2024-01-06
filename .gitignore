@@ -1,0 +1,49 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
+.glide/
+
+# ビルドされたバイナリファイル
+/bin/
+/pkg/
+
+# エディタバックアップファイル
+*.swp
+*.swo
+
+# OS生成ファイル
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ローカルのenvファイル
+.env
+.env.local
+
+# ローカルに保存されたログファイル
+*.log
+
+# IDEやエディタ固有の設定
+.idea/
+.vscode/
+*.sublime-workspace
+
+# 一時ファイル
+tmp/*
+temp/
+
+# uploads
+uploads/*

@@ -3,9 +3,11 @@ package handlers
 import (
 	"fmt"
 	"io"
+	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
@@ -27,8 +29,27 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
+	// MIMEタイプの検証（例: "audio/mpeg" など）
+	buf := make([]byte, 512)
+	if _, err := file.Read(buf); err!= nil {
+		http.Error(w, "Error reading file", http.StatusInternalServerError)
+		return
+	}
+
+	// ファイルタイプの確認
+	filetype := mime.TypeByExtension(filepath.Ext(handler.Filename))
+	if filetype == "" {
+		filetype = http.DetectContentType(buf)
+	}
+	if !strings.HasPrefix(filetype, "audio/") {
+		http.Error(w, "Invalid file type", http.StatusBadRequest)
+		return
+	}
+
+	// ファイルポインタをリセット
+	file.Seek(0, io.SeekStart)
+
 	// 保存するディレクトリとファイル名を指定
-    // ここではカレントディレクトリのuploadsフォルダに保存します
 	dir := "./uploads/"
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		os.Mkdir(dir, os.ModePerm) // ディレクトリがない場合は作成
