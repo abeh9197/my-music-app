@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"my-music-app/mod/internal/handlers"
+	"github.com/abeh9197/my-music-app/back/internal/handlers"
 	"net/http"
 )
 
