@@ -1,8 +1,10 @@
+// back/cmd/my-music-app/main.go
+
 package main
 
 import (
 	"log"
-	"my-music-app/mod/internal/routes"
+	"github.com/abeh9197/my-music-app/back/internal/routes"
 	"net/http"
 )
 
