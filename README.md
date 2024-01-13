@@ -1,5 +1,6 @@
 # my-music-app
 
+cd back
 go run cmd/my-music-app/main.go
 
 # upload request sample.
