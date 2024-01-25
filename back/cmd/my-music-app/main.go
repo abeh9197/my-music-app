@@ -10,6 +10,7 @@ import (
 )
 
 func main() {
+	log.Println("function main")
 	mux := routes.InitializeRoutes()
 
 	// CORSミドルウェアの設定

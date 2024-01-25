@@ -28,16 +28,18 @@ func init() {
 	db, err = sql.Open("postgres", fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=require",
 		os.Getenv("DB_HOST"), os.Getenv("DB_USER"), os.Getenv("DB_PASS"), os.Getenv("DB_NAME"), os.Getenv("DB_PORT")))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error opening database: %v", err)
 	}
+	log.Println("Connected to database successfully")
 }
 
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("UploadHandler called")
 	if r.Method != "POST" {
 		http.Error(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
 		return
 	}
-
+	log.Println("requestMethod: " + r.Method)
 	// 10MBのファイルサイズ制限を設定
 	const MaxUploadSize = 10 << 20 // 10 MB
 	r.Body = http.MaxBytesReader(w, r.Body, MaxUploadSize)
